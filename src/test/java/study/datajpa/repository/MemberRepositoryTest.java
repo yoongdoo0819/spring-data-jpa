@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.entity.Member;
+import study.datajpa.entity.Team;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MemberRepositoryTest {
 
     @Autowired MemberRepository memberRepository;
+    @Autowired TeamRepository teamRepository;
     @PersistenceContext
     EntityManager em;
 
@@ -139,5 +141,28 @@ class MemberRepositoryTest {
 
         // then
         assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() {
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 10, teamB));
+        
+        em.flush();
+        em.clear();
+
+        List<Member> members = memberRepository.findAll();
+
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam() = " + member.getTeam().getName());
+        }
     }
 }
